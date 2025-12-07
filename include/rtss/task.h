@@ -36,7 +36,7 @@ namespace rtss {
             if (_id == 0) {
                 _id = id;
             } else {
-                throw std::runtime_error("id could only be set once");
+                throw std::runtime_error("[Task::set_id] id could only be set once");
             }
         }
 
