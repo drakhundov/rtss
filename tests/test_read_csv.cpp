@@ -53,7 +53,12 @@ TEST_F(ReadTaskListFromCSVTest, ParsedContentIsCorrect) {
         new rtss::PeriodicTask(rtss::time::createTimeDurationMs(0), rtss::time::createTimeDurationMs(15),
                                rtss::time::createTimeDurationMs(3), rtss::time::createTimeDurationMs(15))
     };
+    raw_tasks[0]->set_id(1);
+    raw_tasks[1]->set_id(2);
+    raw_tasks[2]->set_id(3);
+    raw_tasks[3]->set_id(4);
     for (size_t i = 0; i < parsed_task_lst.size(); i++) {
+        std::cout << "ID: " << parsed_task_lst[i]->get_id() << std::endl;
         EXPECT_EQ(parsed_task_lst[i]->to_string(), raw_tasks[i]->to_string());
     }
 }
