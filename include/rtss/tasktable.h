@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RTSS_TASKTBL_H
+#define RTSS_TASKTBL_H
 
 #include <string>
 
@@ -83,3 +84,5 @@ namespace rtss {
         std::vector<ScheduleEntry> _schedule;
     };
 }
+
+#endif
