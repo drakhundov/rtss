@@ -4,6 +4,8 @@
 
 #include "rtss/io/input.h"
 #include "rtss/task.h"
+#include "rtss/tasktable.h"
+#include "rtss/time.h"
 
 namespace fs = std::filesystem;
 
@@ -16,11 +18,7 @@ protected:
     void SetUp() override {
         tmp = fs::temp_directory_path() / "rtss_test_tasks.csv";
         std::ofstream ofs(tmp);
-        ofs << "type,phase,period,wcet,rel_dl\n"
-            << "P,0,5,1,5\n"
-            << "P,0,6,1,6\n"
-            << "P,0,10,2,10\n"
-            << "P,0,15,3,15\n";
+        ofs << "type,phase,period,wcet,rel_dl\nP,0,5,1,5\nP,0,6,1,6\nP,0,10,2,10\nP,0,15,3,15\n";
         ofs.close();
         ASSERT_NO_THROW(rtss::io::read_task_list_from_csv(parsed_task_lst, tmp.string(), md));
     }
@@ -58,7 +56,61 @@ TEST_F(ReadTaskListFromCSVTest, ParsedContentIsCorrect) {
     raw_tasks[2]->set_id(3);
     raw_tasks[3]->set_id(4);
     for (size_t i = 0; i < parsed_task_lst.size(); i++) {
-        std::cout << "ID: " << parsed_task_lst[i]->get_id() << std::endl;
         EXPECT_EQ(parsed_task_lst[i]->to_string(), raw_tasks[i]->to_string());
+    }
+}
+
+class ReadTaskTableFromCSVTest : public ::testing::Test {
+protected:
+    std::filesystem::path tmp;
+    rtss::TaskTableBuilder tbl_builder;
+    std::unique_ptr<rtss::TaskTable> tbl;
+    rtss::io::Metadata md;
+
+    void SetUp() override {
+        tmp = fs::temp_directory_path() / "rtss_test_task_table.csv";
+        std::ofstream ofs(tmp);
+        ofs << "time,task_id\n0,1\n1,2\n2,3\n3,0\n4,4\n7,1\n8,2\n9,1\n10,3\n12,2\n13,1\n14,4\n17,0\n20,3\n22,1\n23,4\n26,0\n26,1\n27,2\n28,1\n30,-1\n";
+        ofs.close();
+        ASSERT_NO_THROW(rtss::io::read_task_table_from_csv(tbl_builder, tmp.string()));
+        tbl = std::make_unique<rtss::TaskTable>(tbl_builder.build());
+    }
+
+    void TearDown() override {
+        std::error_code ec;
+        std::filesystem::remove(tmp, ec);
+    }
+};
+
+TEST_F(ReadTaskTableFromCSVTest, ParsedContentIsCorrect) {
+    std::vector<rtss::ScheduleEntry> raw_schedule = {
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(0), 1),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(1), 2),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(2), 3),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(3), 0),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(4), 4),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(7), 1),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(8), 2),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(9), 1),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(10), 3),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(12), 2),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(13), 1),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(14), 4),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(17), 0),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(20), 3),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(22), 1),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(23), 4),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(26), 0),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(26), 1),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(27), 2),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(28), 1),
+        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(30), -1)
+    };
+    EXPECT_EQ(tbl->size(), raw_schedule.size());
+    for (size_t i = 0; i < tbl->size(); i++) {
+        const rtss::ScheduleEntry &parsed_entry = tbl->get_current_entry();
+        EXPECT_EQ(parsed_entry.start_time, raw_schedule[i].start_time);
+        EXPECT_EQ(parsed_entry.task_id, raw_schedule[i].task_id);
+        tbl->increment_k();
     }
 }
