@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "rtss/task.h"
 #include "rtss/time.h"
 
@@ -44,6 +46,15 @@ namespace rtss {
 
         [[nodiscard]] size_t size() const noexcept {
             return _schedule.size();
+        }
+
+        [[nodiscard]] std::string to_string() const {
+            std::ostringstream oss;
+            oss << "t_k\tT_k: \n";
+            for (auto schedule_entry : _schedule) {
+                oss << time::toInt(schedule_entry.start_time) << "\t" << schedule_entry.task_id << "\n";
+            }
+            return oss.str();
         }
 
     private:
