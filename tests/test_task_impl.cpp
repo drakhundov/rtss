@@ -7,7 +7,7 @@ using rtss::PeriodicTask;
 using rtss::AperiodicTask;
 
 namespace rtss {
-    Task* Task::_idle = new Task(time::ZERO_DURATION, time::ZERO_DURATION);
+    std::unique_ptr<Task> Task::_idle = std::make_unique<Task>(time::ZERO_DURATION, time::ZERO_DURATION);
 }
 
 TEST(TaskTest, DefaultConstructorInitializesIdAndIdleState) {
