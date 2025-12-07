@@ -46,9 +46,9 @@ namespace rtss {
 
         static Task *Idle() {
             if (_idle == nullptr) {
-                _idle = new Task(time::TimeDuration::zero(), time::TimeDuration::zero());
+                _idle = std::make_unique<Task>(time::TimeDuration::zero(), time::TimeDuration::zero());
             }
-            return _idle;
+            return _idle.get();
         }
 
         [[nodiscard]] virtual std::string to_string() const {
@@ -57,14 +57,15 @@ namespace rtss {
                 oss << "[T" << _id << "] ";
             }
             oss << "phase = " << time::toInt(_phase)
-                << " wcet = " << time::toInt(_wcet);
+                    << " wcet = " << time::toInt(_wcet);
             return oss.str();
         }
 
     private:
         time::TimeDuration _phase{time::ZERO_DURATION}, _wcet{time::ZERO_DURATION};
         uint16_t _id{0};
-        static Task *_idle;
+        static std::unique_ptr<Task> _idle;
+        time::TimeDuration _rem_tm;
     };
 
     class PeriodicTask : public Task {
