@@ -21,7 +21,7 @@ namespace rtss {
 
         [[nodiscard]] time::TimeDuration get_wcet() const noexcept { return _wcet; }
 
-        [[nodiscard]] short get_id() const noexcept { return _id; }
+        [[nodiscard]] uint16_t get_id() const noexcept { return _id; }
 
         void set_phase(const time::TimeDuration &phase) noexcept {
             _phase = phase;
@@ -53,8 +53,11 @@ namespace rtss {
 
         [[nodiscard]] virtual std::string to_string() const {
             std::ostringstream oss;
+            if (_id != 0) {
+                oss << "[T" << _id << "] ";
+            }
             oss << "phase = " << time::toInt(_phase)
-                    << " wcet = " << time::toInt(_wcet);
+                << " wcet = " << time::toInt(_wcet);
             return oss.str();
         }
 
@@ -105,6 +108,9 @@ namespace rtss {
 
         [[nodiscard]] std::string to_string() const override {
             std::ostringstream oss;
+            if (get_id() != 0) {
+                oss << "[T" << get_id() << "] ";
+            }
             oss << "phase = " << time::toInt(get_phase())
                     << " period = " << time::toInt(_period)
                     << " wcet = " << time::toInt(get_wcet())
