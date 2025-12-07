@@ -8,6 +8,8 @@
 
 namespace rtss {
     struct ScheduleEntry {
+        ScheduleEntry() = default;
+
         ScheduleEntry(time::TimeDuration start_time, int16_t id)
             : start_time(start_time), task_id(id) {
             ;
