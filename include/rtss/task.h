@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <thread>
 
 #include "rtss/time.h"
 
@@ -14,12 +15,14 @@ namespace rtss {
         virtual ~Task() = default;
 
         Task(time::TimeDuration phase, time::TimeDuration wcet) noexcept
-            : _phase(phase), _wcet(wcet) {
+            : _phase(phase), _wcet(wcet), _rem_tm(wcet) {
         }
 
         [[nodiscard]] time::TimeDuration get_phase() const noexcept { return _phase; }
 
         [[nodiscard]] time::TimeDuration get_wcet() const noexcept { return _wcet; }
+
+        [[nodiscard]] time::TimeDuration get_rem_tm() const noexcept { return _rem_tm; }
 
         [[nodiscard]] uint16_t get_id() const noexcept { return _id; }
 
@@ -29,6 +32,10 @@ namespace rtss {
 
         void set_wcet(const time::TimeDuration &wcet) noexcept {
             _wcet = wcet;
+        }
+
+        void set_rem_tm(const time::TimeDuration &rem_tm) noexcept {
+            _rem_tm = rem_tm;
         }
 
         void set_id(short id) {
@@ -61,11 +68,26 @@ namespace rtss {
             return oss.str();
         }
 
+        void reset() { _rem_tm = _wcet; }
+
+        void update_rem_tm(const time::TimeDuration &exec_time) {
+            if (exec_time >= _rem_tm) {
+                _rem_tm = time::TimeDuration::zero();
+            } else {
+                _rem_tm -= exec_time;
+            }
+        }
+
+        void run_task(time::TimeDuration exec_time) {
+            update_rem_tm(exec_time);
+            std::this_thread::sleep_for(exec_time);
+        }
+
     private:
         time::TimeDuration _phase{time::ZERO_DURATION}, _wcet{time::ZERO_DURATION};
         uint16_t _id{0};
         static std::unique_ptr<Task> _idle;
-        time::TimeDuration _rem_tm;
+        time::TimeDuration _rem_tm{time::ZERO_DURATION};
     };
 
     class PeriodicTask : public Task {
