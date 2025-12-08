@@ -29,6 +29,10 @@ namespace rtss::schedulers {
 
         void run_scheduler(size_t nperiods) override;
     };
+
+    class CyclicExecutiveScheduler : public ClockBasedScheduler {
+
+    };
 }
 
 #endif
