@@ -6,13 +6,8 @@
 #include <string>
 
 #include "rtss/task.h"
+#include "rtss/tasktable.h"
 #include "rtss/time.h"
-
-enum class TaskID {
-    RESET = -1,
-    IDLE = 0
-};
-
 
 namespace rtss::io {
     std::ifstream _init_ifs_for_csv(const std::string &file_path, const std::string &header) {

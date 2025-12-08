@@ -7,16 +7,20 @@
 #include "rtss/time.h"
 
 namespace rtss {
+    enum class TaskID {
+        RESET = -1,
+        IDLE = 0
+    };
+
     struct ScheduleEntry {
         ScheduleEntry() = default;
 
         ScheduleEntry(time::TimeDuration start_time, int16_t id)
             : start_time(start_time), task_id(id) {
-            ;
         }
 
         time::TimeDuration start_time{time::createTimeDurationMs(0)};
-        int16_t task_id{0};
+        int16_t task_id{static_cast<int16_t>(TaskID::IDLE)};
     };
 
     class TaskTable {
@@ -43,6 +47,13 @@ namespace rtss {
             return _schedule[_k];
         }
 
+        [[nodiscard]] const ScheduleEntry &get_next_entry() const {
+            if (_schedule.empty()) {
+                throw std::runtime_error("[TaskTable::get_next_entry] TaskTable is empty");
+            }
+            return _schedule[(_k + 1) % _schedule.size()];
+        }
+
         void increment_k() noexcept {
             _k = (_k + 1) % _schedule.size();
         }
@@ -54,7 +65,7 @@ namespace rtss {
         [[nodiscard]] std::string to_string() const {
             std::ostringstream oss;
             oss << "t_k\tT_k: \n";
-            for (auto schedule_entry : _schedule) {
+            for (auto schedule_entry: _schedule) {
                 oss << time::toInt(schedule_entry.start_time) << "\t" << schedule_entry.task_id << "\n";
             }
             return oss.str();
