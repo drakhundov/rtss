@@ -19,7 +19,12 @@ namespace rtss::time {
         return std::chrono::duration_cast<std::chrono::milliseconds>(td).count();
     }
 
+    inline int64_t toInt(std::chrono::time_point<std::chrono::steady_clock> td) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(td.time_since_epoch()).count();
+    }
+
     const TimeDuration ZERO_DURATION = TimeDuration::zero();
+
 }
 
 
