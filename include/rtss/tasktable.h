@@ -5,17 +5,18 @@
 
 #include "rtss/task.h"
 #include "rtss/time.h"
+#include "rtss/frame.h"
 
 namespace rtss {
-    enum class TaskID {
-        RESET = -1,
-        IDLE = 0
+    enum class SchedulingMode {
+        TASK_BASED,
+        FRAME_BASED
     };
 
-    struct ScheduleEntry {
-        ScheduleEntry() = default;
+    struct TaskScheduleEntry {
+        TaskScheduleEntry() = default;
 
-        ScheduleEntry(time::TimeDuration start_time, int16_t id)
+        TaskScheduleEntry(time::TimeDuration start_time, int16_t id)
             : start_time(start_time), task_id(id) {
         }
 
@@ -25,55 +26,128 @@ namespace rtss {
 
     class TaskTable {
     public:
-        TaskTable() = default;
-
         ~TaskTable() = default;
 
-        explicit TaskTable(std::vector<ScheduleEntry> &&schedule)
-            : _schedule(std::move(schedule)), _k(0) {
+        explicit TaskTable(std::vector<TaskScheduleEntry> &&schedule)
+            : _schedule(std::move(schedule)) {
+            if (_schedule.empty()) {
+                throw std::runtime_error("[TaskTable::TaskTable] Schedule is empty");
+            }
         }
 
-        [[nodiscard]] const ScheduleEntry &get_kth_entry(size_t k) const {
+        explicit TaskTable(FrameContainer *frame_container, time::TimeDuration frame_tm_dur)
+            : _frame_container(frame_container),
+              _scheduling_mode(SchedulingMode::FRAME_BASED), _frame_tm_dur(frame_tm_dur) {
+            if (_frame_tm_dur == time::ZERO_DURATION) {
+                throw std::runtime_error("[TaskTable::TaskTable] Frame size cannot be zero");
+            }
+            if (_frame_container->empty()) {
+                throw std::runtime_error("[TaskTable::TaskTable] Frames are empty");
+            }
+        }
+
+        [[nodiscard]] const TaskScheduleEntry &get_kth_entry(size_t k) const {
             if (k >= _schedule.size()) {
                 throw std::out_of_range("[TaskTable::get_kth_entry] Index out of range");
             }
             return _schedule[k];
         }
 
-        [[nodiscard]] const ScheduleEntry &get_current_entry() const {
+        [[nodiscard]] const Frame &get_kth_frame(size_t k) const {
+            if (k >= _frame_container->size()) {
+                throw std::out_of_range("[TaskTable::get_kth_frame] Index out of range");
+            }
+            // if (_scheduling_mode != SchedulingMode::FRAME_BASED) {
+            //     throw std::runtime_error(
+            //         "[TaskTable::get_kth_frame] TaskTable should be in FRAME_BASED mode in order to retrieve frames");
+            // }
+            return _frame_container->get_kth_frame(k);
+        }
+
+        [[nodiscard]] const TaskScheduleEntry &get_current_entry() const {
             if (_schedule.empty()) {
                 throw std::runtime_error("[TaskTable::get_current_entry] TaskTable is empty");
             }
             return _schedule[_k];
         }
 
-        [[nodiscard]] const ScheduleEntry &get_next_entry() const {
+        [[nodiscard]] const Frame &get_current_frame() const {
+            if (_frame_container->empty()) {
+                throw std::runtime_error("[TaskTable::get_current_frame] TaskTable is empty");
+            }
+            // if (_scheduling_mode != SchedulingMode::FRAME_BASED) {
+            //     throw std::runtime_error(
+            //         "[TaskTable::get_current_frame] TaskTable should be in FRAME_BASED mode in order to retrieve frames");
+            // }
+            return _frame_container->get_kth_frame(_k);
+        }
+
+        [[nodiscard]] const TaskScheduleEntry &get_next_entry() const {
             if (_schedule.empty()) {
                 throw std::runtime_error("[TaskTable::get_next_entry] TaskTable is empty");
             }
             return _schedule[(_k + 1) % _schedule.size()];
         }
 
+        [[nodiscard]] const Frame &get_next_frame() const {
+            if (_frame_container->empty()) {
+                throw std::runtime_error("[TaskTable::get_current_frame] TaskTable is empty");
+            }
+            // if (_scheduling_mode != SchedulingMode::FRAME_BASED) {
+            //     throw std::runtime_error(
+            //         "[TaskTable::get_current_frame] TaskTable should be in FRAME_BASED mode in order to retrieve frames");
+            // }
+            return _frame_container->get_kth_frame((_k + 1) % _frame_container->size());
+        }
+
         void increment_k() noexcept {
-            _k = (_k + 1) % _schedule.size();
+            if (_scheduling_mode == SchedulingMode::TASK_BASED) {
+                _k = (_k + 1) % _schedule.size();
+            } else if (_scheduling_mode == SchedulingMode::FRAME_BASED) {
+                _k = (_k + 1) % _frame_container->size();
+            }
         }
 
         [[nodiscard]] size_t size() const noexcept {
-            return _schedule.size();
+            switch (_scheduling_mode) {
+                case SchedulingMode::TASK_BASED:
+                    return _schedule.size();
+                case SchedulingMode::FRAME_BASED:
+                    return _frame_container->size();
+                default:
+                    return -1;
+            }
         }
 
         [[nodiscard]] std::string to_string() const {
-            std::ostringstream oss;
-            oss << "t_k\tT_k: \n";
-            for (auto schedule_entry: _schedule) {
-                oss << time::toInt(schedule_entry.start_time) << "\t" << schedule_entry.task_id << "\n";
+            switch (_scheduling_mode) {
+                case SchedulingMode::TASK_BASED: {
+                    std::ostringstream oss;
+                    oss << "t_k\tT_k: \n";
+                    for (auto schedule_entry: _schedule) {
+                        oss << time::toInt(schedule_entry.start_time) << "\t" << schedule_entry.task_id << "\n";
+                    }
+                    return oss.str();
+                }
+                case SchedulingMode::FRAME_BASED:
+                    return _frame_container->to_string();
+                default:
+                    return "";
             }
-            return oss.str();
         }
 
+        [[nodiscard]] SchedulingMode &scheduling_mode() const noexcept {
+            return const_cast<SchedulingMode &>(_scheduling_mode);
+        }
+
+        [[nodiscard]] size_t get_k() const noexcept { return _k; }
+
     private:
-        const std::vector<ScheduleEntry> _schedule;
         size_t _k{0};
+        const std::vector<TaskScheduleEntry> _schedule;
+        const FrameContainer *const _frame_container{nullptr};
+        time::TimeDuration _frame_tm_dur{time::ZERO_DURATION};
+        SchedulingMode _scheduling_mode{SchedulingMode::TASK_BASED};
     };
 
     class TaskTableBuilder {
@@ -87,14 +161,38 @@ namespace rtss {
             _schedule.emplace_back(start_time, task_id);
         }
 
-        TaskTable build() { return TaskTable(std::move(_schedule)); }
-
-        [[nodiscard]] size_t size() const noexcept {
-            return _schedule.size();
+        // * Functions moves the schedule, so it could be built only once.
+        // TODO: Enable choosing whether to move the schedule or copy it.
+        TaskTable build(SchedulingMode _m, time::TimeDuration frame_tm_dur = time::ZERO_DURATION,
+                        const std::vector<Task *> &tasks = {}) {
+            switch (_m) {
+                case SchedulingMode::TASK_BASED:
+                    if (_schedule.empty()) {
+                        throw std::runtime_error("[TaskTableBuilder::build] Schedule is empty");
+                    }
+                    return TaskTable(std::move(_schedule));
+                case SchedulingMode::FRAME_BASED: {
+                    if (tasks.empty()) {
+                        throw std::runtime_error("[TaskTableBuilder::build] Tasks reference is empty");
+                    }
+                    FrameContainer *frame_container = this->create_frames(frame_tm_dur, tasks);
+                    if (frame_container == nullptr || frame_container->empty()) {
+                        throw std::runtime_error("[TaskTableBuilder::build] Failed to create frames");
+                    }
+                    return TaskTable(frame_container, _frame_tm_dur);
+                }
+                default:
+                    throw std::runtime_error("[TaskTableBuilder::build] Invalid SchedulingMode");
+            }
         }
 
+        [[nodiscard]] size_t size() const noexcept { return _schedule.size(); }
+
     private:
-        std::vector<ScheduleEntry> _schedule;
+        std::vector<TaskScheduleEntry> _schedule;
+        time::TimeDuration _frame_tm_dur{time::ZERO_DURATION};
+
+        FrameContainer *create_frames(time::TimeDuration frame_tm_dur, const std::vector<Task *> &tasks);
     };
 }
 

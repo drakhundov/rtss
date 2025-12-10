@@ -8,6 +8,11 @@
 #include "rtss/time.h"
 
 namespace rtss {
+    enum class TaskID {
+        RESET = -1,
+        IDLE = 0
+    };
+
     class Task {
     public:
         Task() = default;
@@ -78,7 +83,7 @@ namespace rtss {
             }
         }
 
-        void run_task(time::TimeDuration exec_time) {
+        virtual void run_task(time::TimeDuration exec_time) {
             update_rem_tm(exec_time);
             std::this_thread::sleep_for(exec_time);
         }
@@ -119,6 +124,17 @@ namespace rtss {
 
         [[nodiscard]] time::TimeDuration get_rel_dl() const noexcept {
             return _rel_dl;
+        }
+
+        [[nodiscard]] time::TimeDuration calc_abs_dl() const noexcept {
+            int64_t n_periods = time::toInt(time::Clock::now() + get_phase()) / time::toInt(_period);
+            return get_phase() + (n_periods + 1) * _period + (_rel_dl - _period);
+        }
+
+        [[nodiscard]] time::TimeDuration calc_laxity() const noexcept {
+            time::TimeDuration abs_dl = calc_abs_dl();
+            time::TimeDuration now = time::Clock::now().time_since_epoch();
+            return abs_dl - now - get_rem_tm();
         }
 
         void set_period(const time::TimeDuration &period) noexcept {
