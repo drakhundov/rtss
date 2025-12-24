@@ -1,0 +1,184 @@
+#ifndef RTSS__TASK_H
+#define RTSS__TASK_H
+
+#include <string>
+#include <sstream>
+#include <thread>
+
+#include "rtss/time.h"
+
+namespace rtss {
+    enum class TaskID {
+        RESET = -1,
+        IDLE = 0
+    };
+
+    class Task {
+    public:
+        Task() = default;
+
+        virtual ~Task() = default;
+
+        Task(time::TimeDuration phase, time::TimeDuration wcet) noexcept
+            : _phase(phase), _wcet(wcet), _rem_tm(wcet) {
+        }
+
+        [[nodiscard]] time::TimeDuration get_phase() const noexcept { return _phase; }
+
+        [[nodiscard]] time::TimeDuration get_wcet() const noexcept { return _wcet; }
+
+        [[nodiscard]] time::TimeDuration get_rem_tm() const noexcept { return _rem_tm; }
+
+        [[nodiscard]] uint16_t get_id() const noexcept { return _id; }
+
+        void set_phase(const time::TimeDuration &phase) noexcept {
+            _phase = phase;
+        }
+
+        void set_wcet(const time::TimeDuration &wcet) noexcept {
+            _wcet = wcet;
+        }
+
+        void set_rem_tm(const time::TimeDuration &rem_tm) noexcept {
+            _rem_tm = rem_tm;
+        }
+
+        void set_id(short id) {
+            // !Set id only once when creating the task.
+            if (_id == 0) {
+                _id = id;
+            } else {
+                throw std::runtime_error("[Task::set_id] id could only be set once");
+            }
+        }
+
+        [[nodiscard]] bool is_idle() const noexcept {
+            return _wcet == time::TimeDuration::zero();
+        }
+
+        static Task *Idle() {
+            if (_idle == nullptr) {
+                _idle = std::make_unique<Task>(time::TimeDuration::zero(), time::TimeDuration::zero());
+            }
+            return _idle.get();
+        }
+
+        [[nodiscard]] virtual std::string to_string() const {
+            std::ostringstream oss;
+            if (_id != 0) {
+                oss << "[T" << _id << "] ";
+            }
+            oss << "phase = " << time::toInt(_phase)
+                    << " wcet = " << time::toInt(_wcet);
+            return oss.str();
+        }
+
+        void reset() { _rem_tm = _wcet; }
+
+        void update_rem_tm(const time::TimeDuration &exec_time) {
+            if (exec_time >= _rem_tm) {
+                _rem_tm = time::TimeDuration::zero();
+            } else {
+                _rem_tm -= exec_time;
+            }
+        }
+
+        virtual void run_task(time::TimeDuration exec_time) {
+            update_rem_tm(exec_time);
+            std::this_thread::sleep_for(exec_time);
+        }
+
+    private:
+        time::TimeDuration _phase{time::ZERO_DURATION}, _wcet{time::ZERO_DURATION};
+        uint16_t _id{0};
+        static std::unique_ptr<Task> _idle;
+        time::TimeDuration _rem_tm{time::ZERO_DURATION};
+    };
+
+    class PeriodicTask : public Task {
+    public:
+        PeriodicTask()
+            : Task(), _period(time::TimeDuration::zero()),
+              _rel_dl(time::TimeDuration::zero()) {
+        }
+
+        PeriodicTask(time::TimeDuration phase, time::TimeDuration period, time::TimeDuration wcet,
+                     time::TimeDuration rel_dl) noexcept
+            : Task(phase, wcet),
+              _period(period), _rel_dl(rel_dl) {
+        }
+
+        PeriodicTask(time::TimeDuration period, time::TimeDuration wcet)
+            : Task(time::TimeDuration::zero(), wcet),
+              _period(period), _rel_dl(period) {
+        }
+
+        PeriodicTask(time::TimeDuration period, time::TimeDuration wcet, time::TimeDuration rel_dl) noexcept
+            : Task(time::TimeDuration::zero(), wcet),
+              _period(period), _rel_dl(rel_dl) {
+        }
+
+        [[nodiscard]] time::TimeDuration get_period() const noexcept {
+            return _period;
+        }
+
+        [[nodiscard]] time::TimeDuration get_rel_dl() const noexcept {
+            return _rel_dl;
+        }
+
+        [[nodiscard]] time::TimeDuration calc_abs_dl() const noexcept {
+            int64_t n_periods = time::toInt(time::Clock::now() + get_phase()) / time::toInt(_period);
+            return get_phase() + (n_periods + 1) * _period + (_rel_dl - _period);
+        }
+
+        [[nodiscard]] time::TimeDuration calc_laxity() const noexcept {
+            time::TimeDuration abs_dl = calc_abs_dl();
+            time::TimeDuration now = time::Clock::now().time_since_epoch();
+            return abs_dl - now - get_rem_tm();
+        }
+
+        void set_period(const time::TimeDuration &period) noexcept {
+            _period = period;
+        }
+
+        void set_rel_dl(const time::TimeDuration &rel_dl) noexcept {
+            _rel_dl = rel_dl;
+        }
+
+        [[nodiscard]] std::string to_string() const override {
+            std::ostringstream oss;
+            if (get_id() != 0) {
+                oss << "[T" << get_id() << "] ";
+            }
+            oss << "phase = " << time::toInt(get_phase())
+                    << " period = " << time::toInt(_period)
+                    << " wcet = " << time::toInt(get_wcet())
+                    << " rel_dl = " << time::toInt(_rel_dl);
+            return oss.str();
+        }
+
+    private:
+        time::TimeDuration _period{time::ZERO_DURATION}, _rel_dl{time::ZERO_DURATION};
+    };
+
+    class AperiodicTask : public Task {
+    public:
+        AperiodicTask() = default;
+
+        AperiodicTask(time::TimeDuration arrival, time::TimeDuration wcet) noexcept
+            : Task(arrival, wcet) {
+        }
+
+        [[nodiscard]] time::TimeDuration get_arrival() const noexcept { return get_phase(); }
+        void set_arrival(time::TimeDuration arrival) noexcept { set_phase(arrival); }
+
+        [[nodiscard]] std::string to_string() const override {
+            std::ostringstream oss;
+            oss << "arrival = " << time::toInt(get_arrival())
+                    << " wcet = " << time::toInt(get_wcet());
+            return oss.str();
+        }
+    };
+}
+
+#endif
