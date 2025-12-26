@@ -21,8 +21,8 @@ TEST(TaskTest, DefaultConstructorInitializesIdAndIdleState) {
 }
 
 TEST(TaskTest, ValueConstructorSetsPhaseAndWcet) {
-    auto phase = rtss::time::createTimeDurationMs(5);
-    auto wcet = rtss::time::createTimeDurationMs(10);
+    auto phase = rtss::time::createTimeDurationtime::createTimeDurationMs(5);
+    auto wcet = rtss::time::createTimeDurationtime::createTimeDurationMs(10);
 
     Task t(phase, wcet);
 
@@ -32,11 +32,11 @@ TEST(TaskTest, ValueConstructorSetsPhaseAndWcet) {
 }
 
 TEST(TaskTest, SettersModifyPhaseAndWcet) {
-    Task t(rtss::time::createTimeDurationMs(1),
-           rtss::time::createTimeDurationMs(2));
+    Task t(rtss::time::createTimeDurationtime::createTimeDurationMs(1),
+           rtss::time::createTimeDurationtime::createTimeDurationMs(2));
 
-    t.set_phase(rtss::time::createTimeDurationMs(100));
-    t.set_wcet(rtss::time::createTimeDurationMs(200));
+    t.set_phase(rtss::time::createTimeDurationtime::createTimeDurationMs(100));
+    t.set_wcet(rtss::time::createTimeDurationtime::createTimeDurationMs(200));
 
     EXPECT_EQ(rtss::time::toInt(t.get_phase()), 100);
     EXPECT_EQ(rtss::time::toInt(t.get_wcet()), 200);
@@ -44,7 +44,7 @@ TEST(TaskTest, SettersModifyPhaseAndWcet) {
 
 TEST(TaskTest, IdCanBeSetOnlyOnce) {
     Task t(rtss::time::ZERO_DURATION,
-           rtss::time::createTimeDurationMs(1));
+           rtss::time::createTimeDurationtime::createTimeDurationMs(1));
 
     t.set_id(42);
     EXPECT_EQ(t.get_id(), 42);
@@ -80,10 +80,10 @@ TEST(PeriodicTaskTest, DefaultConstructorCreatesZeroTask) {
 }
 
 TEST(PeriodicTaskTest, FullConstructorSetsAllFields) {
-    auto phase = rtss::time::createTimeDurationMs(1);
-    auto period = rtss::time::createTimeDurationMs(10);
-    auto wcet = rtss::time::createTimeDurationMs(3);
-    auto rel_dl = rtss::time::createTimeDurationMs(9);
+    auto phase = rtss::time::createTimeDurationtime::createTimeDurationMs(1);
+    auto period = rtss::time::createTimeDurationtime::createTimeDurationMs(10);
+    auto wcet = rtss::time::createTimeDurationtime::createTimeDurationMs(3);
+    auto rel_dl = rtss::time::createTimeDurationtime::createTimeDurationMs(9);
 
     PeriodicTask pt(phase, period, wcet, rel_dl);
 
@@ -95,8 +95,8 @@ TEST(PeriodicTaskTest, FullConstructorSetsAllFields) {
 }
 
 TEST(PeriodicTaskTest, PeriodWcetConstructorSetsDeadlineEqualToPeriod) {
-    auto period = rtss::time::createTimeDurationMs(20);
-    auto wcet = rtss::time::createTimeDurationMs(5);
+    auto period = rtss::time::createTimeDurationtime::createTimeDurationMs(20);
+    auto wcet = rtss::time::createTimeDurationtime::createTimeDurationMs(5);
 
     PeriodicTask pt(period, wcet);
 
@@ -107,21 +107,21 @@ TEST(PeriodicTaskTest, PeriodWcetConstructorSetsDeadlineEqualToPeriod) {
 }
 
 TEST(PeriodicTaskTest, SettersModifyPeriodAndDeadline) {
-    PeriodicTask pt(rtss::time::createTimeDurationMs(10),
-                    rtss::time::createTimeDurationMs(3));
+    PeriodicTask pt(rtss::time::createTimeDurationtime::createTimeDurationMs(10),
+                    rtss::time::createTimeDurationtime::createTimeDurationMs(3));
 
-    pt.set_period(rtss::time::createTimeDurationMs(50));
-    pt.set_rel_dl(rtss::time::createTimeDurationMs(40));
+    pt.set_period(rtss::time::createTimeDurationtime::createTimeDurationMs(50));
+    pt.set_rel_dl(rtss::time::createTimeDurationtime::createTimeDurationMs(40));
 
     EXPECT_EQ(rtss::time::toInt(pt.get_period()), 50);
     EXPECT_EQ(rtss::time::toInt(pt.get_rel_dl()), 40);
 }
 
 TEST(PeriodicTaskTest, ToStringContainsKeyFields) {
-    auto phase = rtss::time::createTimeDurationMs(1);
-    auto period = rtss::time::createTimeDurationMs(10);
-    auto wcet = rtss::time::createTimeDurationMs(3);
-    auto rel_dl = rtss::time::createTimeDurationMs(9);
+    auto phase = rtss::time::createTimeDurationtime::createTimeDurationMs(1);
+    auto period = rtss::time::createTimeDurationtime::createTimeDurationMs(10);
+    auto wcet = rtss::time::createTimeDurationtime::createTimeDurationMs(3);
+    auto rel_dl = rtss::time::createTimeDurationtime::createTimeDurationMs(9);
 
     PeriodicTask pt(phase, period, wcet, rel_dl);
 
@@ -136,8 +136,8 @@ TEST(PeriodicTaskTest, ToStringContainsKeyFields) {
 // ---- AperiodicTask tests ---------------------------------------------------
 
 TEST(AperiodicTaskTest, ConstructorSetsArrivalAndWcet) {
-    auto arrival = rtss::time::createTimeDurationMs(7);
-    auto wcet = rtss::time::createTimeDurationMs(2);
+    auto arrival = rtss::time::createTimeDurationtime::createTimeDurationMs(7);
+    auto wcet = rtss::time::createTimeDurationtime::createTimeDurationMs(2);
 
     AperiodicTask at(arrival, wcet);
 
@@ -146,18 +146,17 @@ TEST(AperiodicTaskTest, ConstructorSetsArrivalAndWcet) {
 }
 
 TEST(AperiodicTaskTest, ArrivalSetterAndGetterWork) {
-    AperiodicTask at(rtss::time::createTimeDurationMs(1),
-                     rtss::time::createTimeDurationMs(2));
+    AperiodicTask at(rtss::time::createTimeDurationtime::createTimeDurationMs(1),
+                     rtss::time::createTimeDurationtime::createTimeDurationMs(2));
 
-    at.set_arrival(rtss::time::createTimeDurationMs(42));
+    at.set_arrival(rtss::time::createTimeDurationtime::createTimeDurationMs(42));
 
     EXPECT_EQ(rtss::time::toInt(at.get_arrival()), 42);
 }
 
 TEST(AperiodicTaskTest, ToStringContainsArrivalAndWcet) {
-    AperiodicTask at(rtss::time::createTimeDurationMs(12),
-                     rtss::time::createTimeDurationMs(3));
-
+    AperiodicTask at(rtss::time::createTimeDurationtime::createTimeDurationMs(12),
+                     rtss::time::createTimeDurationtime::createTimeDurationMs(3));
     std::string s = at.to_string();
     EXPECT_NE(s.find("arrival"), std::string::npos);
     EXPECT_NE(s.find("wcet"), std::string::npos);

@@ -13,6 +13,7 @@ namespace rtss::schedulers {
         }
 
         RTScheduler() = delete;
+
         virtual ~RTScheduler() = default;
 
         virtual void run_scheduler(size_t nperiods) = 0;

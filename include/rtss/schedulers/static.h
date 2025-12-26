@@ -26,7 +26,8 @@ namespace rtss::schedulers {
                                       TaskTable &task_tbl)
             : ClockBasedScheduler(tasks, task_tbl) {
             if (task_tbl.scheduling_mode() != SchedulingMode::TASK_BASED) {
-                throw std::runtime_error("[CyclicExecutiveScheduler::CyclicExecutiveScheduler] TaskTable must be in TASK_BASED mode");
+                throw std::runtime_error(
+                    "[CyclicExecutiveScheduler::CyclicExecutiveScheduler] TaskTable must be in TASK_BASED mode");
             }
         }
 
@@ -40,7 +41,8 @@ namespace rtss::schedulers {
                                           int frame_sz)
             : ClockBasedScheduler(tasks, task_tbl), frame_sz(frame_sz) {
             if (task_tbl.scheduling_mode() != SchedulingMode::FRAME_BASED) {
-                throw std::runtime_error("[CyclicExecutiveScheduler::CyclicExecutiveScheduler] TaskTable must be in FRAME_BASED mode");
+                throw std::runtime_error(
+                    "[CyclicExecutiveScheduler::CyclicExecutiveScheduler] TaskTable must be in FRAME_BASED mode");
             }
         }
 

@@ -4,7 +4,6 @@
 
 #include "rtss/io/input.h"
 #include "rtss/task.h"
-#include "rtss/tasktable.h"
 #include "rtss/time.h"
 
 namespace fs = std::filesystem;
@@ -42,14 +41,14 @@ TEST_F(ReadTaskListFromCSVTest, MetadataIsCorrect) {
 
 TEST_F(ReadTaskListFromCSVTest, ParsedContentIsCorrect) {
     std::vector<rtss::Task *> raw_tasks = {
-        new rtss::PeriodicTask(rtss::time::createTimeDurationMs(0), rtss::time::createTimeDurationMs(5),
-                               rtss::time::createTimeDurationMs(1), rtss::time::createTimeDurationMs(5)),
-        new rtss::PeriodicTask(rtss::time::createTimeDurationMs(0), rtss::time::createTimeDurationMs(6),
-                               rtss::time::createTimeDurationMs(1), rtss::time::createTimeDurationMs(6)),
-        new rtss::PeriodicTask(rtss::time::createTimeDurationMs(0), rtss::time::createTimeDurationMs(10),
-                               rtss::time::createTimeDurationMs(2), rtss::time::createTimeDurationMs(10)),
-        new rtss::PeriodicTask(rtss::time::createTimeDurationMs(0), rtss::time::createTimeDurationMs(15),
-                               rtss::time::createTimeDurationMs(3), rtss::time::createTimeDurationMs(15))
+        new rtss::PeriodicTask(rtss::time::createTimeDurationtime::createTimeDurationMs(0), rtss::time::createTimeDurationtime::createTimeDurationMs(5),
+                               rtss::time::createTimeDurationtime::createTimeDurationMs(1), rtss::time::createTimeDurationtime::createTimeDurationMs(5)),
+        new rtss::PeriodicTask(rtss::time::createTimeDurationtime::createTimeDurationMs(0), rtss::time::createTimeDurationtime::createTimeDurationMs(6),
+                               rtss::time::createTimeDurationtime::createTimeDurationMs(1), rtss::time::createTimeDurationtime::createTimeDurationMs(6)),
+        new rtss::PeriodicTask(rtss::time::createTimeDurationtime::createTimeDurationMs(0), rtss::time::createTimeDurationtime::createTimeDurationMs(10),
+                               rtss::time::createTimeDurationtime::createTimeDurationMs(2), rtss::time::createTimeDurationtime::createTimeDurationMs(10)),
+        new rtss::PeriodicTask(rtss::time::createTimeDurationtime::createTimeDurationMs(0), rtss::time::createTimeDurationtime::createTimeDurationMs(15),
+                               rtss::time::createTimeDurationtime::createTimeDurationMs(3), rtss::time::createTimeDurationtime::createTimeDurationMs(15))
     };
     raw_tasks[0]->set_id(1);
     raw_tasks[1]->set_id(2);
@@ -73,7 +72,7 @@ protected:
         ofs << "time,task_id\n0,1\n1,2\n2,3\n3,0\n4,4\n7,1\n8,2\n9,1\n10,3\n12,2\n13,1\n14,4\n17,0\n20,3\n22,1\n23,4\n26,0\n26,1\n27,2\n28,1\n30,-1\n";
         ofs.close();
         ASSERT_NO_THROW(rtss::io::read_task_table_from_csv(tbl_builder, tmp.string()));
-        tbl = std::make_unique<rtss::TaskTable>(tbl_builder.build());
+        tbl = std::make_unique<rtss::TaskTable>(tbl_builder.build(rtss::SchedulingMode::TASK_BASED));
     }
 
     void TearDown() override {
@@ -83,32 +82,32 @@ protected:
 };
 
 TEST_F(ReadTaskTableFromCSVTest, ParsedContentIsCorrect) {
-    std::vector<rtss::ScheduleEntry> raw_schedule = {
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(0), 1),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(1), 2),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(2), 3),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(3), 0),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(4), 4),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(7), 1),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(8), 2),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(9), 1),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(10), 3),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(12), 2),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(13), 1),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(14), 4),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(17), 0),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(20), 3),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(22), 1),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(23), 4),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(26), 0),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(26), 1),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(27), 2),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(28), 1),
-        rtss::ScheduleEntry(rtss::time::createTimeDurationMs(30), -1)
+    std::vector raw_schedule = {
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(0), 1),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(1), 2),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(2), 3),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(3), 0),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(4), 4),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(7), 1),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(8), 2),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(9), 1),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(10), 3),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(12), 2),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(13), 1),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(14), 4),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(17), 0),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(20), 3),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(22), 1),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(23), 4),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(26), 0),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(26), 1),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(27), 2),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(28), 1),
+        rtss::TaskScheduleEntry(rtss::time::createTimeDurationtime::createTimeDurationMs(30), -1)
     };
     EXPECT_EQ(tbl->size(), raw_schedule.size());
     for (size_t i = 0; i < tbl->size(); i++) {
-        const rtss::ScheduleEntry &parsed_entry = tbl->get_current_entry();
+        const rtss::TaskScheduleEntry &parsed_entry = tbl->get_current_entry();
         EXPECT_EQ(parsed_entry.start_time, raw_schedule[i].start_time);
         EXPECT_EQ(parsed_entry.task_id, raw_schedule[i].task_id);
         tbl->increment_k();
