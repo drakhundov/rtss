@@ -133,12 +133,13 @@ namespace rtss::io {
     }
 
     void write_task_csv_from_stdin(const std::filesystem::path &csv_path) {
-        std::ofstream out(csv_path);
-        if (!out) {
-            throw std::runtime_error("Failed to open CSV file for writing: " + csv_path.string());
+        std::ofstream csv_ofs(csv_path);
+        if (!csv_ofs) {
+            throw std::runtime_error(
+                "[io::write_task_csv_from_stdin] Failed to open CSV file for writing: " + csv_path.string());
         }
 
-        out << "type,phase,period,wcet,rel_dl\n";
+        csv_ofs << "type,phase,period,wcet,rel_dl\n";
 
         std::string line;
         while (std::getline(std::cin, line)) {
@@ -146,7 +147,6 @@ namespace rtss::io {
             if (line.empty()) {
                 break;
             }
-
             std::istringstream iss(line);
             std::string type;
             iss >> type;
@@ -160,55 +160,55 @@ namespace rtss::io {
                 while (iss >> tok) {
                     tokens.push_back(tok);
                 }
-
-                if (tokens.size() != 3 && tokens.size() != 4) {
-                    throw std::runtime_error("Invalid periodic task line: " + line);
+                const size_t NTOKENS = tokens.size();
+                if (NTOKENS != 3 && NTOKENS != 4) {
+                    throw std::runtime_error("[io::write_task_csv_from_stdin] Invalid periodic task line: " + line);
                 }
-
                 int phase = 0;
-                int wcet = 0;
                 int period = 0;
+                int wcet = 0;
                 int rel_dl = 0;
-
-                // P ri ei pi [di]
-                // tokens: [ri, ei, pi, (di)?]
-                phase = (tokens[0] == "-") ? 0 : std::stoi(tokens[0]);
-                wcet = std::stoi(tokens[1]);
-                period = std::stoi(tokens[2]);
-
-                if (tokens.size() == 4) {
-                    rel_dl = std::stoi(tokens[3]);
-                } else {
-                    rel_dl = period; // default D = T
+                // P [ri] pi ei [di]
+                // tokens: [(ri)?, ei, pi, (di)?]
+                switch (NTOKENS) {
+                    case 2:
+                        period = std::stoi(tokens[0]);
+                        wcet = std::stoi(tokens[1]);
+                        // default
+                        phase = 0;
+                        rel_dl = period;
+                        break;
+                    case 3:
+                        phase = std::stoi(tokens[0]);
+                        period = std::stoi(tokens[1]);
+                        wcet = std::stoi(tokens[2]);
+                        // default
+                        rel_dl = period;
+                        break;
+                    case 4:
+                        phase = std::stoi(tokens[0]);
+                        period = std::stoi(tokens[1]);
+                        wcet = std::stoi(tokens[2]);
+                        rel_dl = std::stoi(tokens[3]);
+                        break;
+                    default:
+                        throw std::runtime_error(
+                            "[io::write_task_csv_from_stdin] Invalid number of tokens in line " + line + " ntokens=" +
+                            std::to_string(NTOKENS));
                 }
-
-                out << "P," << phase << "," << period << "," << wcet << "," << rel_dl << "\n";
+                csv_ofs << "P," << phase << "," << period << "," << wcet << "," << rel_dl << "\n";
             } else if (type == "A" || type == "a") {
                 std::vector<std::string> tokens;
                 std::string tok;
                 while (iss >> tok) {
                     tokens.push_back(tok);
                 }
-
-                if (tokens.size() != 2 && tokens.size() != 3) {
+                if (tokens.size() != 2) {
                     throw std::runtime_error("Invalid aperiodic task line: " + line);
                 }
-
-                int arrival = 0;
-                int wcet = 0;
-                int rel_dl = 0;
-
-                // A ri ei [di]
-                arrival = std::stoi(tokens[0]);
-                wcet = std::stoi(tokens[1]);
-                if (tokens.size() == 3) {
-                    rel_dl = std::stoi(tokens[2]);
-                } else {
-                    rel_dl = 0; // no soft deadline
-                }
-
-                // period = 0 for aperiodic in the CSV schema
-                out << "A," << arrival << ",0," << wcet << "," << rel_dl << "\n";
+                int arrival = std::stoi(tokens[0]);
+                int wcet = std::stoi(tokens[1]);
+                csv_ofs << "A," << arrival << ",0," << wcet << "\n";
             } else {
                 throw std::runtime_error("Unknown task type in line: " + line);
             }
@@ -218,26 +218,21 @@ namespace rtss::io {
     void write_task_table_csv_from_stdin(const std::filesystem::path &csv_path) {
         std::ofstream out(csv_path);
         if (!out) {
-            throw std::runtime_error("Failed to open table CSV file for writing: " + csv_path.string());
+            throw std::runtime_error("[io::write_task_table_csv_from_stdin] Failed to open table CSV file for writing: " + csv_path.string());
         }
-
         out << "time,task_id\n";
-
         std::string line;
         while (true) {
             std::cout << "> ";
-            if (!std::getline(std::cin, line)) break;        // EOF
-            if (line.empty()) break;                         // user ended input
-
+            if (!std::getline(std::cin, line)) break; // EOF
+            if (line.empty()) break; // user ended input
             std::istringstream iss(line);
             int time_ms = 0;
             int task_id = 0;
-
             if (!(iss >> time_ms >> task_id)) {
-                std::cerr << "Invalid line, expected: <time> <task_id>\n";
+                std::cerr << "[io::write_task_table_csv_from_stdin] Invalid line, expected: <time> <task_id>\n";
                 continue;
             }
-
             out << time_ms << "," << task_id << "\n";
         }
     }
