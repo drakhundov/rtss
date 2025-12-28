@@ -18,11 +18,7 @@ int main(int argc, char **argv) {
     io::Metadata meta;
     std::filesystem::path tmp_dir = std::filesystem::temp_directory_path();
     std::filesystem::path csv_path = tmp_dir / "rtss_tasks.csv";
-    std::cout << "Enter task set (one per line), e.g.:\n"
-            "  P 0 1 5 5   # periodic: phase=0, wcet=1, period=5, deadline=5\n"
-            "  P 0 1 6     # periodic: phase=0, wcet=1, period=6, deadline=6\n"
-            "  A 3 2       # aperiodic: arrival=3, wcet=2\n"
-            "End input with an empty line.\n\n";
+    std::cout << "Enter task set (one per line); End input with an empty line.\n\n" << std::flush;
     io::write_task_csv_from_stdin(csv_path);
     std::cout << "Tasks written to: " << csv_path << "\n";
     io::read_task_list_from_csv(tasks, csv_path.string(), meta);
@@ -79,9 +75,9 @@ int main(int argc, char **argv) {
             std::cerr << "Invalid choice.\n";
             return 1;
     }
-    std::cout << "How many periods? ";
-    size_t nperiods;
-    std::cin >> nperiods;
-    scheduler->run_scheduler(nperiods);
+    std::cout << "How many cycles? ";
+    size_t ncycles;
+    std::cin >> ncycles;
+    scheduler->run_scheduler(ncycles);
     return 0;
 }
