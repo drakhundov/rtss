@@ -161,8 +161,10 @@ namespace rtss::io {
                     tokens.push_back(tok);
                 }
                 const size_t NTOKENS = tokens.size();
-                if (NTOKENS != 3 && NTOKENS != 4) {
-                    throw std::runtime_error("[io::write_task_csv_from_stdin] Invalid periodic task line: " + line);
+                if (NTOKENS < 2 || NTOKENS > 4) {
+                    throw std::runtime_error(
+                        "[io::write_task_csv_from_stdin] Invalid number of tokens in line " + line + " ntokens=" +
+                        std::to_string(NTOKENS));
                 }
                 int phase = 0;
                 int period = 0;
@@ -191,10 +193,6 @@ namespace rtss::io {
                         wcet = std::stoi(tokens[2]);
                         rel_dl = std::stoi(tokens[3]);
                         break;
-                    default:
-                        throw std::runtime_error(
-                            "[io::write_task_csv_from_stdin] Invalid number of tokens in line " + line + " ntokens=" +
-                            std::to_string(NTOKENS));
                 }
                 csv_ofs << "P," << phase << "," << period << "," << wcet << "," << rel_dl << "\n";
             } else if (type == "A" || type == "a") {
@@ -218,7 +216,9 @@ namespace rtss::io {
     void write_task_table_csv_from_stdin(const std::filesystem::path &csv_path) {
         std::ofstream out(csv_path);
         if (!out) {
-            throw std::runtime_error("[io::write_task_table_csv_from_stdin] Failed to open table CSV file for writing: " + csv_path.string());
+            throw std::runtime_error(
+                "[io::write_task_table_csv_from_stdin] Failed to open table CSV file for writing: " + csv_path.
+                string());
         }
         out << "time,task_id\n";
         std::string line;
