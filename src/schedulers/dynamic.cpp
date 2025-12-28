@@ -21,7 +21,7 @@ namespace rtss::schedulers {
                       auto pb = dynamic_cast<PeriodicTask *>(b);
 
                       if (pa && pb) {
-                          return this->compare(pa, pb); // shorter period -> higher priority
+                          return this->compare(pa, pb);
                       }
                       if (pa && !pb) {
                           return true; // periodic tasks before non-periodic
