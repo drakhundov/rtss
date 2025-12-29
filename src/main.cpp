@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
             io::write_task_table_csv_from_stdin(tbl_path);
             TaskTableBuilder tbl_builder;
             io::read_task_table_from_csv(tbl_builder, tbl_path.string());
-            TaskTable tbl = tbl_builder.build(SchedulingMode::TASK_BASED);
+            TaskTable tbl = tbl_builder.build(StaticSchedulingMode::TASK_BASED);
             scheduler = new schedulers::TableDrivenScheduler(tasks, tbl);
             break;
         }
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
             int frame_ms;
             std::cin >> frame_ms;
             TaskTable tbl = tbl_builder.build(
-                SchedulingMode::FRAME_BASED,
+                StaticSchedulingMode::FRAME_BASED,
                 time::createTimeDurationMs(frame_ms),
                 tasks
             );

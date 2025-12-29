@@ -6,13 +6,9 @@
 #include "rtss/task.h"
 #include "rtss/time.h"
 #include "rtss/frame.h"
+#include "rtss/schedulers/static.h"
 
 namespace rtss {
-    enum class SchedulingMode {
-        TASK_BASED,
-        FRAME_BASED
-    };
-
     struct TaskScheduleEntry {
         TaskScheduleEntry() = default;
 
@@ -37,7 +33,7 @@ namespace rtss {
 
         explicit TaskTable(FrameContainer *frame_container, time::TimeDuration frame_tm_dur)
             : _frame_container(frame_container),
-              _scheduling_mode(SchedulingMode::FRAME_BASED), _frame_tm_dur(frame_tm_dur) {
+              _scheduling_mode(StaticSchedulingMode::FRAME_BASED), _frame_tm_dur(frame_tm_dur) {
             if (_frame_tm_dur == time::ZERO_DURATION) {
                 throw std::runtime_error("[TaskTable::TaskTable] Frame size cannot be zero");
             }
@@ -57,7 +53,7 @@ namespace rtss {
             if (k >= _frame_container->size()) {
                 throw std::out_of_range("[TaskTable::get_kth_frame] Index out of range");
             }
-            // if (_scheduling_mode != SchedulingMode::FRAME_BASED) {
+            // if (_scheduling_mode != StaticSchedulingMode::FRAME_BASED) {
             //     throw std::runtime_error(
             //         "[TaskTable::get_kth_frame] TaskTable should be in FRAME_BASED mode in order to retrieve frames");
             // }
@@ -75,7 +71,7 @@ namespace rtss {
             if (_frame_container->empty()) {
                 throw std::runtime_error("[TaskTable::get_current_frame] TaskTable is empty");
             }
-            // if (_scheduling_mode != SchedulingMode::FRAME_BASED) {
+            // if (_scheduling_mode != StaticSchedulingMode::FRAME_BASED) {
             //     throw std::runtime_error(
             //         "[TaskTable::get_current_frame] TaskTable should be in FRAME_BASED mode in order to retrieve frames");
             // }
@@ -93,7 +89,7 @@ namespace rtss {
             if (_frame_container->empty()) {
                 throw std::runtime_error("[TaskTable::get_current_frame] TaskTable is empty");
             }
-            // if (_scheduling_mode != SchedulingMode::FRAME_BASED) {
+            // if (_scheduling_mode != StaticSchedulingMode::FRAME_BASED) {
             //     throw std::runtime_error(
             //         "[TaskTable::get_current_frame] TaskTable should be in FRAME_BASED mode in order to retrieve frames");
             // }
@@ -101,18 +97,18 @@ namespace rtss {
         }
 
         void increment_k() noexcept {
-            if (_scheduling_mode == SchedulingMode::TASK_BASED) {
+            if (_scheduling_mode == StaticSchedulingMode::TASK_BASED) {
                 _k = (_k + 1) % _schedule.size();
-            } else if (_scheduling_mode == SchedulingMode::FRAME_BASED) {
+            } else if (_scheduling_mode == StaticSchedulingMode::FRAME_BASED) {
                 _k = (_k + 1) % _frame_container->size();
             }
         }
 
         [[nodiscard]] size_t size() const noexcept {
             switch (_scheduling_mode) {
-                case SchedulingMode::TASK_BASED:
+                case StaticSchedulingMode::TASK_BASED:
                     return _schedule.size();
-                case SchedulingMode::FRAME_BASED:
+                case StaticSchedulingMode::FRAME_BASED:
                     return _frame_container->size();
                 default:
                     return -1;
@@ -121,7 +117,7 @@ namespace rtss {
 
         [[nodiscard]] std::string to_string() const {
             switch (_scheduling_mode) {
-                case SchedulingMode::TASK_BASED: {
+                case StaticSchedulingMode::TASK_BASED: {
                     std::ostringstream oss;
                     oss << "t_k\tT_k: \n";
                     for (auto schedule_entry: _schedule) {
@@ -129,15 +125,15 @@ namespace rtss {
                     }
                     return oss.str();
                 }
-                case SchedulingMode::FRAME_BASED:
+                case StaticSchedulingMode::FRAME_BASED:
                     return _frame_container->to_string();
                 default:
                     return "";
             }
         }
 
-        [[nodiscard]] SchedulingMode &scheduling_mode() const noexcept {
-            return const_cast<SchedulingMode &>(_scheduling_mode);
+        [[nodiscard]] StaticSchedulingMode &scheduling_mode() const noexcept {
+            return const_cast<StaticSchedulingMode &>(_scheduling_mode);
         }
 
         [[nodiscard]] size_t get_k() const noexcept { return _k; }
@@ -147,7 +143,7 @@ namespace rtss {
         const std::vector<TaskScheduleEntry> _schedule;
         const FrameContainer *const _frame_container{nullptr};
         time::TimeDuration _frame_tm_dur{time::ZERO_DURATION};
-        SchedulingMode _scheduling_mode{SchedulingMode::TASK_BASED};
+        StaticSchedulingMode _scheduling_mode{StaticSchedulingMode::TASK_BASED};
     };
 
     class TaskTableBuilder {
@@ -163,15 +159,15 @@ namespace rtss {
 
         // * Functions moves the schedule, so it could be built only once.
         // TODO: Enable choosing whether to move the schedule or copy it.
-        TaskTable build(SchedulingMode _m, time::TimeDuration frame_tm_dur = time::ZERO_DURATION,
+        TaskTable build(StaticSchedulingMode _m, time::TimeDuration frame_tm_dur = time::ZERO_DURATION,
                         const std::vector<Task *> &tasks = {}) {
             switch (_m) {
-                case SchedulingMode::TASK_BASED:
+                case StaticSchedulingMode::TASK_BASED:
                     if (_schedule.empty()) {
                         throw std::runtime_error("[TaskTableBuilder::build] Schedule is empty");
                     }
                     return TaskTable(std::move(_schedule));
-                case SchedulingMode::FRAME_BASED: {
+                case StaticSchedulingMode::FRAME_BASED: {
                     if (tasks.empty()) {
                         throw std::runtime_error("[TaskTableBuilder::build] Tasks reference is empty");
                     }
@@ -182,7 +178,7 @@ namespace rtss {
                     return TaskTable(frame_container, _frame_tm_dur);
                 }
                 default:
-                    throw std::runtime_error("[TaskTableBuilder::build] Invalid SchedulingMode");
+                    throw std::runtime_error("[TaskTableBuilder::build] Invalid StaticSchedulingMode");
             }
         }
 

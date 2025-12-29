@@ -72,7 +72,7 @@ protected:
         ofs << "time,task_id\n0,1\n1,2\n2,3\n3,0\n4,4\n7,1\n8,2\n9,1\n10,3\n12,2\n13,1\n14,4\n17,0\n20,3\n22,1\n23,4\n26,0\n26,1\n27,2\n28,1\n30,-1\n";
         ofs.close();
         ASSERT_NO_THROW(rtss::io::read_task_table_from_csv(tbl_builder, tmp.string()));
-        tbl = std::make_unique<rtss::TaskTable>(tbl_builder.build(rtss::SchedulingMode::TASK_BASED));
+        tbl = std::make_unique<rtss::TaskTable>(tbl_builder.build(rtss::StaticSchedulingMode::TASK_BASED));
     }
 
     void TearDown() override {

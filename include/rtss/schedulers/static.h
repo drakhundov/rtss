@@ -6,11 +6,18 @@
 #include "rtss/tasktable.h"
 #include "rtss/schedulers/RTScheduler.h"
 
+namespace rtss {
+    enum class StaticSchedulingMode {
+        TASK_BASED,
+        FRAME_BASED
+    };
+}
+
 namespace rtss::schedulers {
     class ClockBasedScheduler : public RTScheduler {
     public:
         ClockBasedScheduler(std::vector<Task *> &tasks,
-                            TaskTable &task_tbl)
+                            rtss::TaskTable &task_tbl)
             : RTScheduler(tasks), task_tbl(task_tbl) {
         }
 
@@ -25,7 +32,7 @@ namespace rtss::schedulers {
         explicit TableDrivenScheduler(std::vector<Task *> &tasks,
                                       TaskTable &task_tbl)
             : ClockBasedScheduler(tasks, task_tbl) {
-            if (task_tbl.scheduling_mode() != SchedulingMode::TASK_BASED) {
+            if (task_tbl.scheduling_mode() != StaticSchedulingMode::TASK_BASED) {
                 throw std::runtime_error(
                     "[CyclicExecutiveScheduler::CyclicExecutiveScheduler] TaskTable must be in TASK_BASED mode");
             }
@@ -40,7 +47,7 @@ namespace rtss::schedulers {
                                           TaskTable &task_tbl,
                                           int frame_sz)
             : ClockBasedScheduler(tasks, task_tbl), frame_sz(frame_sz) {
-            if (task_tbl.scheduling_mode() != SchedulingMode::FRAME_BASED) {
+            if (task_tbl.scheduling_mode() != StaticSchedulingMode::FRAME_BASED) {
                 throw std::runtime_error(
                     "[CyclicExecutiveScheduler::CyclicExecutiveScheduler] TaskTable must be in FRAME_BASED mode");
             }
