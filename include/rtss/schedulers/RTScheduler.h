@@ -5,6 +5,17 @@
 
 #include "rtss/task.h"
 
+namespace rtss {
+    enum class StaticSchedulingMode {
+        TASK_BASED,
+        FRAME_BASED
+    };
+
+    enum class PriorityMode {
+        FIXED, DYNAMIC
+    };
+}
+
 namespace rtss::schedulers {
     class RTScheduler {
     public:

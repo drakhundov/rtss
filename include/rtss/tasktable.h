@@ -6,7 +6,7 @@
 #include "rtss/task.h"
 #include "rtss/time.h"
 #include "rtss/frame.h"
-#include "rtss/schedulers/static.h"
+#include "rtss/schedulers/RTScheduler.h"
 
 namespace rtss {
     struct TaskScheduleEntry {

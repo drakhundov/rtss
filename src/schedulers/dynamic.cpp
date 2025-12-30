@@ -4,12 +4,11 @@
 #include <iostream>
 
 namespace rtss::schedulers {
-    void PriorityBasedScheduler::assign_priorities() {
+    void PriorityBasedScheduler::assign_priorities(std::vector<size_t> &idx) {
         const size_t n = this->tasks.size();
         if (n == 0) return;
 
         // sort indices so original `tasks` order is preserved
-        std::vector<size_t> idx(n);
         std::iota(idx.begin(), idx.end(), 0);
 
         std::sort(idx.begin(), idx.end(),
@@ -33,37 +32,34 @@ namespace rtss::schedulers {
                       return a->get_wcet() < b->get_wcet();
                   });
 
-        // assign priorities (1 = highest here)
-        for (size_t rank = 0; rank < n; ++rank) {
-            set_task_priority(idx[rank], static_cast<int>(rank + 1));
-        }
+        // // assign priorities (1 = highest here)
+        // for (size_t rank = 0; rank < n; ++rank) {
+        //     set_task_priority(idx[rank], static_cast<int>(rank + 1));
+        // }
     }
 
-    void PriorityBasedScheduler::run_scheduler(size_t nperiods) {
-        if (nperiods == 0) return;
+    void PriorityBasedScheduler::run_scheduler(size_t ncycles) {
+        if (ncycles == 0) return;
 
-        size_t period_counter = 0;
-        while (period_counter < nperiods) {
-            std::cout << "---- Hyperperiod " << period_counter + 1 << " ----" << std::endl;
-            assign_priorities();
-            std::vector<size_t> idx(this->tasks.size());
-            std::iota(idx.begin(), idx.end(), 0);
-            std::sort(idx.begin(), idx.end(), [this](size_t a, size_t b) {
-                try {
-                    return get_task_priority(a) < get_task_priority(b);
-                } catch (...) {
-                    return a < b;
-                }
-            });
+        size_t cycle_counter = 0;
+        if (this->_priority_mode == PriorityMode::FIXED) {
+            assign_priorities(this->pri_idx);
+            std::cout << "Assigned priorities." << std::endl;
+        }
+        while (cycle_counter < ncycles) {
+            std::cout << "---- Cycle " << cycle_counter + 1 << " ----" << std::endl;
+            if (this->_priority_mode == PriorityMode::DYNAMIC) {
+                assign_priorities(this->pri_idx);
+                std::cout << "Assigned priorities." << std::endl;
+            }
             bool progress = true;
             while (progress) {
                 progress = false;
                 auto now = time::Clock::now().time_since_epoch();
 
-                for (size_t i: idx) {
-                    Task *t = this->tasks[i];
+                for (size_t idx: pri_idx) {
+                    Task *t = this->tasks[idx];
 
-                    if (t->is_idle()) continue; // skip idle tasks
                     if (t->get_rem_tm() == time::TimeDuration::zero()) continue; // already finished
 
                     bool ready = false;
@@ -93,7 +89,7 @@ namespace rtss::schedulers {
             for (auto *t: this->tasks) {
                 t->reset();
             }
-            period_counter++;
+            cycle_counter++;
         }
     }
 

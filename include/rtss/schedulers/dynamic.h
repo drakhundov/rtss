@@ -6,37 +6,37 @@
 #include "rtss/schedulers/RTScheduler.h"
 
 namespace rtss::schedulers {
-    enum class PriorityMode {
-        FIXED, DYNAMIC
-    };
-
     class PriorityBasedScheduler : public RTScheduler {
     public:
         explicit PriorityBasedScheduler(std::vector<Task *> &tasks, PriorityMode priority_mode)
             : RTScheduler(tasks), _priority_mode(priority_mode) {
         }
 
-        int get_task_priority(size_t task_id) { return priorities[task_id]; }
-
-        void set_task_priority(size_t task_id, int priority) { priorities[task_id] = priority; }
+        // int get_task_priority(size_t task_id) { return priorities[task_id]; }
+        //
+        // void set_task_priority(size_t task_id, int priority) { priorities[task_id] = priority; }
 
         void run_scheduler(size_t ncycles) override;
-
-    private:
-        std::vector<int> priorities{0};
-        PriorityMode _priority_mode;
 
     protected:
         void assign_priorities(std::vector<size_t> &idx);
 
         virtual bool compare(PeriodicTask *P1, PeriodicTask *P2) = 0;
+
+        // Fields.
+        // List of indices from highest priority to lowest,
+        // where each index corresponds to the task list.
+        std::vector<size_t> pri_idx{0};
+
+    private:
+        PriorityMode _priority_mode;
     };
 
     class RateMonotonicScheduler : public PriorityBasedScheduler {
     public:
         explicit RateMonotonicScheduler(std::vector<Task *> &tasks)
             : PriorityBasedScheduler(tasks, PriorityMode::FIXED) {
-            PriorityBasedScheduler::assign_priorities();
+            PriorityBasedScheduler::assign_priorities(this->pri_idx);
         }
 
     private:
@@ -47,7 +47,7 @@ namespace rtss::schedulers {
     public:
         explicit DeadlineMonotonicScheduler(std::vector<Task *> &tasks)
             : PriorityBasedScheduler(tasks, PriorityMode::FIXED) {
-            PriorityBasedScheduler::assign_priorities();
+            PriorityBasedScheduler::assign_priorities(this->pri_idx);
         }
 
     private:

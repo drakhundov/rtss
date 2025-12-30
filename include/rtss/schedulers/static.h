@@ -6,18 +6,11 @@
 #include "rtss/tasktable.h"
 #include "rtss/schedulers/RTScheduler.h"
 
-namespace rtss {
-    enum class StaticSchedulingMode {
-        TASK_BASED,
-        FRAME_BASED
-    };
-}
-
 namespace rtss::schedulers {
     class ClockBasedScheduler : public RTScheduler {
     public:
         ClockBasedScheduler(std::vector<Task *> &tasks,
-                            rtss::TaskTable &task_tbl)
+                            TaskTable &task_tbl)
             : RTScheduler(tasks), task_tbl(task_tbl) {
         }
 
